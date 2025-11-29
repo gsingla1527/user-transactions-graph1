@@ -1,34 +1,20 @@
-version: "3.9"
-
 services:
-  neo4j:
-    image: neo4j:5.25
-    container_name: neo4j
-    ports:
-      - "7474:7474"
-      - "7687:7687"
-    environment:
-      - NEO4J_AUTH=neo4j/password
-    volumes:
-      - neo4j_data:/data
 
   backend:
     build: ./backend
     container_name: backend
-    env_file:
-      - .env
-    depends_on:
-      - neo4j
     ports:
       - "8000:8000"
+    env_file:
+      - ./backend/app/.env
+    volumes:
+      - ./backend:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
 
   frontend:
     build: ./frontend
     container_name: frontend
-    depends_on:
-      - backend
     ports:
       - "3000:80"
-
-volumes:
-  neo4j_data:
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro

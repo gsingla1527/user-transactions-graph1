@@ -273,9 +273,23 @@ def get_transaction_relationships(tx_id: str):
         return GraphResponse(nodes=list(nodes_map.values()), edges=edges)
 
 
-@app.post("/generate-data")
-def generate_data(users: int = 2000, transactions: int = 100000):
+from fastapi import BackgroundTasks
+
+def _run_generation(users, transactions, batch_size, create_shared_links):
     driver = get_driver()
+    # use a single session to call the generate function directly
     with driver.session() as session:
-        session.execute_write(generate_sample_data, user_count=users, tx_count=transactions)
-    return {"message": f"Generated {users} users and {transactions} transactions"}
+        # we use the new generate_sample_data which expects a session-like object
+        # (we pass the session to the function)
+        from .data_gen import generate_sample_data
+        generate_sample_data(session, user_count=users, tx_count=transactions, batch_size=batch_size, create_shared_links=create_shared_links)
+
+@app.post("/generate-data")
+def generate_data(background_tasks: BackgroundTasks, users: int = 200, transactions: int = 2000, batch_size: int = 1000, create_links: bool = False):
+    """
+    Starts generation in background. Returns immediately.
+    Use docker logs (or console) to follow progress printed by the generator.
+    """
+    background_tasks.add_task(_run_generation, users, transactions, batch_size, create_links)
+    return {"message": "Generation started in background", "users": users, "transactions": transactions, "batch_size": batch_size}
+

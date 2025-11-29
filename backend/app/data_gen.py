@@ -11,7 +11,9 @@ def create_constraints(tx: Transaction):
     tx.run("CREATE CONSTRAINT IF NOT EXISTS FOR (t:Transaction) REQUIRE t.tx_id IS UNIQUE")
 
 
-def generate_sample_data(tx: Transaction, user_count: int = 2000, tx_count: int = 100000):
+def generate_sample_data(tx: Transaction, user_count: int = 2000, tx_count: int = 100000,
+                         batch_size: int = 5000, create_shared_links: bool = True):
+
     # Create users with shared attributes
     users = []
     shared_emails = [fake.email() for _ in range(5)]
