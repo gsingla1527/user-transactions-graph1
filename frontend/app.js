@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:8000";
+const API_BASE = "https://user-transactions-graph-1.onrender.com/";
 
 let cy = cytoscape({
   container: document.getElementById("cy"),
